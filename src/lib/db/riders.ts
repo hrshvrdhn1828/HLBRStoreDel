@@ -7,6 +7,6 @@ import type { Rider } from '@/types';
 export async function getRider(employeeId: string): Promise<Rider | null> {
   if (DEV_MODE) return mockStore.getRider(employeeId);
 
-  const res = await ddb.send(new GetCommand({ TableName: TABLES.RIDERS, Key: { employeeId } }));
+  const res = await ddb.send(new GetCommand({ TableName: TABLES.DEL_EXECUTIVES, Key: { employeeId } }));
   return (res.Item as Rider) ?? null;
 }

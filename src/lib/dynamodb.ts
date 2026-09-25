@@ -13,5 +13,5 @@ export const ddb = DynamoDBDocumentClient.from(client, {
 // reads/writes orders and its own rider accounts, never users/products.
 export const TABLES = {
   ORDERS: process.env.DYNAMODB_ORDERS_TABLE || 'hlbr_store_orders',
-  RIDERS: process.env.DYNAMODB_RIDERS_TABLE || 'hlbr_store_riders',
+  DEL_EXECUTIVES: process.env.DYNAMODB_DEL_EXECUTIVES_TABLE || 'hlbr_store_del_executives',
 };

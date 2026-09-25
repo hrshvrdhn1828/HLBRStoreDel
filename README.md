@@ -45,7 +45,7 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
 ## Provisioning a real rider
 
 1. Hash locally: `node -e "console.log(require('bcryptjs').hashSync('their-password', 10))"`
-2. Add an item to `hlbr_store_riders` in the DynamoDB console:
+2. Add an item to `hlbr_store_del_executives` in the DynamoDB console:
    ```json
    {
      "employeeId": "HLBR-STORE-DEL-1",
@@ -58,13 +58,13 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
 ## Data model
 
 - `hlbr_store_orders` — shared with the storefront, PK `orderId`. This app reads (paginated, status-filtered `Scan`) and writes only `status` (dispatched → delivered), `deliveredAt`, `deliveredBy`, and `passcodeAttempts`.
-- `hlbr_store_riders` — PK `employeeId`, owned by this app. Create it manually (on-demand capacity, deletion protection on).
+- `hlbr_store_del_executives` — PK `employeeId`, owned by this app. Create it manually (on-demand capacity, deletion protection on).
 
 ## Deploying to AWS Amplify
 
 Follow the playbook. App-specific bits:
-- Env vars: `SESSION_SECRET` (**freshly generated**, not shared with the other apps), `DYNAMODB_ORDERS_TABLE`, `DYNAMODB_RIDERS_TABLE`, `DEV_MODE=false`, `NEXT_PUBLIC_DEV_MODE=false`. Never `AWS_REGION`.
+- Env vars: `SESSION_SECRET` (**freshly generated**, not shared with the other apps), `DYNAMODB_ORDERS_TABLE`, `DYNAMODB_DEL_EXECUTIVES_TABLE`, `DEV_MODE=false`, `NEXT_PUBLIC_DEV_MODE=false`. Never `AWS_REGION`.
 - Its own **SSR compute role** (e.g. `HlbrDelSSRComputeRole`), least privilege:
   - `hlbr_store_orders`: `dynamodb:Scan`, `dynamodb:GetItem`, `dynamodb:UpdateItem`
-  - `hlbr_store_riders`: `dynamodb:GetItem`
+  - `hlbr_store_del_executives`: `dynamodb:GetItem`
 - Custom domain `del.hlbrstore.com` only after verifying on the default `amplifyapp.com` URL.
