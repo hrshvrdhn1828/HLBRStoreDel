@@ -6,7 +6,7 @@ frontend:
         - npm ci
     build:
       commands:
-        - env | grep -E '^(SESSION_SECRET|DYNAMODB_ORDERS_TABLE|DYNAMODB_RIDERS_TABLE|DEV_MODE|NEXT_PUBLIC_DEV_MODE)=' >> .env.production
+        - env | grep -E '^(SESSION_SECRET|DYNAMODB_ORDERS_TABLE|DYNAMODB_DEL_EXECUTIVES_TABLE|DEV_MODE|NEXT_PUBLIC_DEV_MODE)=' >> .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
