@@ -57,7 +57,7 @@ function LoginForm() {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-grass-200 via-white to-grass-200">
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-sm rounded-2xl border border-amber-800 bg-white p-6 shadow-sm">
-          <h1 className="text-center text-xl font-bold text-grass-500">HLBR Store Del.</h1>
+          <h1 className="text-center text-xl font-bold text-grass-500"><span className="text-stone-700">HLBR</span> Store Del.</h1>
           <p className="mt-1 text-center text-xs text-stone-400">Rider delivery panel</p>
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
