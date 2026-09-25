@@ -25,7 +25,7 @@ function LoginForm() {
     setError(null);
 
     if (!employeeId.trim()) {
-      setError('Please enter your Rider ID');
+      setError('Please enter your Delivery Executive ID');
       return;
     }
     if (!password) {
@@ -57,12 +57,12 @@ function LoginForm() {
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-grass-200 via-white to-grass-200">
       <div className="flex flex-1 items-center justify-center px-4">
         <div className="w-full max-w-sm rounded-2xl border border-amber-800 bg-white p-6 shadow-sm">
-          <h1 className="text-center text-xl font-bold text-grass-500"><span className="text-stone-700">HLBR</span> Store Del.</h1>
-          <p className="mt-1 text-center text-xs text-stone-400">Rider delivery panel</p>
+          <h1 className="text-center text-xl font-bold text-grass-500"><span className="text-stone-700">HLBR</span> Store.</h1>
+          <p className="mt-1 text-center text-xs text-stone-400">Delivery Executives</p>
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
             <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-stone-700">Rider ID</span>
+              <span className="font-medium text-stone-700">Delivery Executive ID</span>
               <input
                 type="text"
                 value={employeeId}

@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'HLBR Store Del',
-  description: 'Delivery panel for HLBR Store riders',
+  description: 'Delivery panel for HLBR Store delivery executives',
 };
 
 // Force light appearance regardless of the device's dark mode setting.

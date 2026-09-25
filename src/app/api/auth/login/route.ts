@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   }
 
   if (!employeeId || typeof employeeId !== 'string' || !employeeId.trim()) {
-    return NextResponse.json({ error: 'Rider ID is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Delivery Executive ID is required' }, { status: 400 });
   }
   if (!password || typeof password !== 'string') {
     return NextResponse.json({ error: 'Password is required' }, { status: 400 });
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Generic error either way — don't reveal whether the rider ID exists.
     if (!rider || !ok) {
-      return NextResponse.json({ error: 'Incorrect rider ID or password' }, { status: 401 });
+      return NextResponse.json({ error: 'Incorrect Delivery Executive ID or password' }, { status: 401 });
     }
 
     const token = await createSessionToken({ employeeId: rider.employeeId });
