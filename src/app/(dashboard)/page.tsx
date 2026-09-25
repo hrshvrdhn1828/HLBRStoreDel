@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getCurrentRider } from '@/lib/auth/rider';
+import { isVisibleToExecutive } from '@/lib/visibility';
 import { listOrdersByStatus } from '@/lib/db/orders';
 import OrderCard from '@/components/OrderCard';
 
@@ -17,11 +18,14 @@ export default async function DashboardPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   // Layouts don't re-run on every navigation, so the page checks the session itself too.
-  if (!(await getCurrentRider())) redirect('/login');
+  const rider = await getCurrentRider();
+  if (!rider) redirect('/login');
 
   const { tab: tabParam } = await searchParams;
   const tab = TABS.find((t) => t.key === tabParam) ?? TABS[0];
-  const orders = await listOrdersByStatus([tab.status]);
+  const orders = (await listOrdersByStatus([tab.status])).filter((o) =>
+    isVisibleToExecutive(o, rider.employeeId)
+  );
 
   return (
     <div className="flex flex-col gap-4">

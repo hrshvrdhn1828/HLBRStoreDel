@@ -31,6 +31,8 @@ export interface Order {
   createdAt: string;
 
   // --- Fields this app depends on / writes ---
+  /** Delivery executive this dispatched order is assigned to. Set by HLBRStoreCoord when dispatching. */
+  assignedTo?: string;
   /** Secret the customer reads out to the rider. Written by the storefront; never sent to the browser here. */
   deliveryPasscode?: string;
   /** Passcode guesses used so far (owned by this app). */

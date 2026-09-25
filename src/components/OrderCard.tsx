@@ -50,6 +50,12 @@ export default function OrderCard({ order }: { order: RiderOrder }) {
         </div>
       </div>
 
+      {!delivered && !order.assignedTo && (
+        <p className="text-xs text-amber-700">
+          Not assigned to anyone yet — confirm with the coordinator before taking it.
+        </p>
+      )}
+
       {delivered ? (
         order.deliveredAt && (
           <p className="text-xs text-stone-500">

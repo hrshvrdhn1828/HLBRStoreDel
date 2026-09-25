@@ -45,6 +45,14 @@ export async function POST(
         { status: 409 }
       );
     }
+    // Checked before spending a passcode attempt: someone else's order must not be guessable
+    // (or lockable) from this account. Unassigned orders predate assignment and stay open.
+    if (order.assignedTo && order.assignedTo !== rider.employeeId) {
+      return NextResponse.json(
+        { error: 'This order is assigned to another delivery executive' },
+        { status: 403 }
+      );
+    }
     if (!order.deliveryPasscode) {
       return NextResponse.json(
         { error: 'This order has no delivery passcode. Contact the coordinator.' },

@@ -8,6 +8,16 @@ A deliberately tiny Next.js app. Riders see the orders that are **out for delive
 
 Setup, stack, and Amplify steps follow `../NEW-SATELLITE-APP-PLAYBOOK.md`; this app is the same shape as `HLBRStoreCoord`.
 
+## Who sees which order
+
+A coordinator picks the delivery executive when dispatching an order (in `HLBRStoreCoord`), which sets `assignedTo` on the order. Each executive then sees only their own work (`src/lib/visibility.ts`):
+
+- **Out for delivery:** dispatched orders assigned to them.
+- **Delivered:** orders they delivered.
+- `POST /api/orders/[id]/deliver` rejects anyone else with a 403 **before** spending a passcode attempt, so nobody can guess (or lock) another executive's order. This is enforced on the server, not just hidden in the UI.
+- Orders dispatched **before** assignment existed have no `assignedTo`. They stay visible to every executive, marked "Not assigned to anyone yet", so they can still be delivered. Once the backlog clears this is a no-op.
+- To hand an order to someone else, the coordinator dispatches it again with a different executive.
+
 ## Delivery passcode flow
 
 1. The customer sees a passcode for their order on hlbrstore.com.
@@ -38,8 +48,8 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
 
 1. `npm install`
 2. `.env.local` (gitignored) is set up with `DEV_MODE=true`: the app runs fully in-memory, seeded with
-   - Rider ID `HLBR-STORE-DEL-1`, password `pass@1234`
-   - Two dispatched orders (passcodes `4821`, `1357`), one delivered order, and one packed order (which must not appear)
+   - Executive `HLBR-STORE-DEL-1` and `HLBR-STORE-DEL-2` (a second one, to test assignment), both with password `pass@1234`
+   - Dispatched orders: `4821` (assigned to DEL-1), `1357` (assigned to DEL-2), `7777` (unassigned, like an order from before assignment existed); two delivered orders; and one packed order (which must not appear)
 3. `npm run dev` → http://localhost:3000 (redirects to `/login`)
 
 ## Provisioning a real rider
@@ -57,7 +67,7 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
 
 ## Data model
 
-- `hlbr_store_orders` — shared with the storefront, PK `orderId`. This app reads (paginated, status-filtered `Scan`) and writes only `status` (dispatched → delivered), `deliveredAt`, `deliveredBy`, and `passcodeAttempts`.
+- `hlbr_store_orders` — shared with the storefront, PK `orderId`. This app reads (paginated, status-filtered `Scan`) and writes only `status` (dispatched → delivered), `deliveredAt`, `deliveredBy`, and `passcodeAttempts`. It reads `assignedTo`, which `HLBRStoreCoord` writes.
 - `hlbr_store_del_executives` — PK `employeeId`, owned by this app. Create it manually (on-demand capacity, deletion protection on).
 
 ## Deploying to AWS Amplify

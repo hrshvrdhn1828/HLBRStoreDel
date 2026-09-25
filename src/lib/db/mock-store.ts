@@ -3,7 +3,7 @@
  * Lets the app run end-to-end on a laptop with no AWS account. Data resets on server restart.
  */
 import bcrypt from 'bcryptjs';
-import { DEV_RIDER } from '@/lib/dev-mode';
+import { DEV_RIDER, DEV_RIDER_2 } from '@/lib/dev-mode';
 import { MAX_PASSCODE_ATTEMPTS } from '@/lib/constants';
 import type { Order, OrderStatus, Rider } from '@/types';
 
@@ -14,6 +14,15 @@ const seedRiders = () => new Map<string, Rider>([
       employeeId: DEV_RIDER.employeeId,
       passwordHash: bcrypt.hashSync(DEV_RIDER.password, 10),
       name: DEV_RIDER.name,
+      createdAt: new Date().toISOString(),
+    },
+  ],
+  [
+    DEV_RIDER_2.employeeId,
+    {
+      employeeId: DEV_RIDER_2.employeeId,
+      passwordHash: bcrypt.hashSync(DEV_RIDER.password, 10),
+      name: DEV_RIDER_2.name,
       createdAt: new Date().toISOString(),
     },
   ],
@@ -35,6 +44,7 @@ const seedOrders = () => new Map<string, Order>(
         deliveryFee: 0,
         orderTotal: 40,
         status: 'dispatched',
+        assignedTo: DEV_RIDER.employeeId,
         deliveryPasscode: '4821',
         createdAt: minutesAgo(30),
       },
@@ -49,6 +59,7 @@ const seedOrders = () => new Map<string, Order>(
         deliveryFee: 5,
         orderTotal: 65,
         status: 'dispatched',
+        assignedTo: DEV_RIDER_2.employeeId, // someone else's order
         deliveryPasscode: '1357',
         createdAt: minutesAgo(90),
       },
@@ -67,6 +78,38 @@ const seedOrders = () => new Map<string, Order>(
         deliveredAt: minutesAgo(20),
         deliveredBy: DEV_RIDER.employeeId,
         createdAt: minutesAgo(120),
+      },
+      {
+        // Dispatched before assignment existed: no assignedTo, so any executive can take it.
+        orderId: 'dev-order-5',
+        mobileNumber: '919876543214',
+        customerName: 'Meera',
+        items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 3 }],
+        floor: '1st Floor',
+        unitNo: 'Unit 108',
+        itemsTotal: 60,
+        deliveryFee: 5,
+        orderTotal: 65,
+        status: 'dispatched',
+        deliveryPasscode: '7777',
+        createdAt: minutesAgo(60),
+      },
+      {
+        orderId: 'dev-order-6',
+        mobileNumber: '919876543215',
+        customerName: 'Karan',
+        items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 1 }],
+        floor: '6th Floor',
+        unitNo: 'Unit 601',
+        itemsTotal: 20,
+        deliveryFee: 5,
+        orderTotal: 25,
+        status: 'delivered',
+        assignedTo: DEV_RIDER_2.employeeId,
+        deliveryPasscode: '3131',
+        deliveredAt: minutesAgo(15),
+        deliveredBy: DEV_RIDER_2.employeeId,
+        createdAt: minutesAgo(100),
       },
       {
         // Not dispatched yet — must never show up in the rider panel.
