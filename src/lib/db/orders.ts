@@ -1,11 +1,11 @@
 import {
   GetCommand,
-  ScanCommand,
+  QueryCommand,
   UpdateCommand,
-  type ScanCommandInput,
+  type QueryCommandInput,
 } from '@aws-sdk/lib-dynamodb';
 import { ConditionalCheckFailedException } from '@aws-sdk/client-dynamodb';
-import { ddb, TABLES } from '@/lib/dynamodb';
+import { ddb, ORDERS_STORE_INDEX, TABLES } from '@/lib/dynamodb';
 import { DEV_MODE } from '@/lib/dev-mode';
 import { MAX_PASSCODE_ATTEMPTS } from '@/lib/constants';
 import { mockStore } from '@/lib/db/mock-store';
@@ -19,30 +19,36 @@ export function toRiderOrder(order: Order): RiderOrder {
 }
 
 /**
- * Scan filtered to the given statuses. Paginates because a Scan reads at most 1 MB
- * *before* the filter is applied — one page could otherwise hide matching orders.
- * Fine at this store's volume; revisit with a status GSI if it grows.
+ * One store's orders in the given statuses, newest first. Queries the storeId-createdAt-index GSI
+ * and filters by status; paginates because a Query reads at most 1 MB *before* the filter is
+ * applied — one page could otherwise hide matching orders.
  */
-export async function listOrdersByStatus(statuses: OrderStatus[]): Promise<RiderOrder[]> {
-  if (DEV_MODE) return mockStore.listOrdersByStatus(statuses).map(toRiderOrder);
+export async function listOrdersByStatus(
+  storeId: string,
+  statuses: OrderStatus[]
+): Promise<RiderOrder[]> {
+  if (DEV_MODE) return mockStore.listOrdersByStatus(storeId, statuses).map(toRiderOrder);
 
   const values = Object.fromEntries(statuses.map((s, i) => [`:s${i}`, s]));
-  const params: ScanCommandInput = {
+  const params: QueryCommandInput = {
     TableName: TABLES.ORDERS,
+    IndexName: ORDERS_STORE_INDEX,
+    KeyConditionExpression: 'storeId = :storeId',
     FilterExpression: `#status IN (${Object.keys(values).join(', ')})`,
     ExpressionAttributeNames: { '#status': 'status' },
-    ExpressionAttributeValues: values,
+    ExpressionAttributeValues: { ':storeId': storeId, ...values },
+    ScanIndexForward: false,
   };
 
   const items: Order[] = [];
-  let lastKey: ScanCommandInput['ExclusiveStartKey'];
+  let lastKey: QueryCommandInput['ExclusiveStartKey'];
   do {
-    const res = await ddb.send(new ScanCommand({ ...params, ExclusiveStartKey: lastKey }));
+    const res = await ddb.send(new QueryCommand({ ...params, ExclusiveStartKey: lastKey }));
     items.push(...((res.Items as Order[]) ?? []));
     lastKey = res.LastEvaluatedKey;
   } while (lastKey);
 
-  return items.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map(toRiderOrder);
+  return items.map(toRiderOrder);
 }
 
 /** Full order including the passcode — server-side use only, never return this from a route. */

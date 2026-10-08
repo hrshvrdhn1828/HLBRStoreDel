@@ -23,7 +23,7 @@ export default async function DashboardPage({
 
   const { tab: tabParam } = await searchParams;
   const tab = TABS.find((t) => t.key === tabParam) ?? TABS[0];
-  const orders = (await listOrdersByStatus([tab.status])).filter((o) =>
+  const orders = (await listOrdersByStatus(rider.storeId, [tab.status])).filter((o) =>
     isVisibleToExecutive(o, rider.employeeId)
   );
 

@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const orders = (await listOrdersByStatus(['dispatched', 'delivered'])).filter((o) =>
+  const orders = (await listOrdersByStatus(rider.storeId, ['dispatched', 'delivered'])).filter((o) =>
     isVisibleToExecutive(o, rider.employeeId)
   );
   return NextResponse.json({ orders });

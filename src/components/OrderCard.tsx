@@ -9,6 +9,7 @@ export default function OrderCard({ order }: { order: RiderOrder }) {
     <div className="flex flex-col gap-3 rounded-xl border border-stone-100 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
+          <p className="text-xs font-medium text-stone-400">Order #{order.orderNumber}</p>
           <p className="text-sm font-semibold text-stone-800">
             {order.customerName} · Floor {order.floor}
           </p>

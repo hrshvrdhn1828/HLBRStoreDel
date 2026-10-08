@@ -36,7 +36,8 @@ export async function POST(
 
   try {
     const order = await getOrder(id);
-    if (!order) {
+    // Another store's order looks the same as a missing one, and is rejected before any passcode attempt.
+    if (!order || order.storeId !== rider.storeId) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
     if (order.status !== 'dispatched') {

@@ -14,6 +14,7 @@ const seedRiders = () => new Map<string, Rider>([
       employeeId: DEV_RIDER.employeeId,
       passwordHash: bcrypt.hashSync(DEV_RIDER.password, 10),
       name: DEV_RIDER.name,
+      storeId: DEV_RIDER.storeId,
       createdAt: new Date().toISOString(),
     },
   ],
@@ -23,6 +24,7 @@ const seedRiders = () => new Map<string, Rider>([
       employeeId: DEV_RIDER_2.employeeId,
       passwordHash: bcrypt.hashSync(DEV_RIDER.password, 10),
       name: DEV_RIDER_2.name,
+      storeId: DEV_RIDER_2.storeId,
       createdAt: new Date().toISOString(),
     },
   ],
@@ -35,6 +37,8 @@ const seedOrders = () => new Map<string, Order>(
     [
       {
         orderId: 'dev-order-1',
+        storeId: 'UPLKO0001',
+        orderNumber: 'UPLKO0001081026001',
         mobileNumber: '919876543210',
         customerName: 'Priya',
         items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 2 }],
@@ -50,6 +54,8 @@ const seedOrders = () => new Map<string, Order>(
       },
       {
         orderId: 'dev-order-2',
+        storeId: 'UPLKO0001',
+        orderNumber: 'UPLKO0001081026002',
         mobileNumber: '919876543211',
         customerName: 'Rahul',
         items: [{ productId: 'p3', name: 'Veg Sandwich', price: 60, qty: 1 }],
@@ -65,6 +71,8 @@ const seedOrders = () => new Map<string, Order>(
       },
       {
         orderId: 'dev-order-3',
+        storeId: 'UPLKO0001',
+        orderNumber: 'UPLKO0001081026003',
         mobileNumber: '919876543212',
         customerName: 'Anita',
         items: [{ productId: 'p2', name: 'Cold Coffee', price: 80, qty: 1 }],
@@ -82,6 +90,8 @@ const seedOrders = () => new Map<string, Order>(
       {
         // Dispatched before assignment existed: no assignedTo, so any executive can take it.
         orderId: 'dev-order-5',
+        storeId: 'UPLKO0001',
+        orderNumber: 'UPLKO0001081026004',
         mobileNumber: '919876543214',
         customerName: 'Meera',
         items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 3 }],
@@ -96,6 +106,8 @@ const seedOrders = () => new Map<string, Order>(
       },
       {
         orderId: 'dev-order-6',
+        storeId: 'UPLKO0001',
+        orderNumber: 'UPLKO0001081026005',
         mobileNumber: '919876543215',
         customerName: 'Karan',
         items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 1 }],
@@ -114,6 +126,8 @@ const seedOrders = () => new Map<string, Order>(
       {
         // Not dispatched yet — must never show up in the rider panel.
         orderId: 'dev-order-4',
+        storeId: 'UPLKO0001',
+        orderNumber: 'UPLKO0001081026006',
         mobileNumber: '919876543213',
         customerName: 'Vikram',
         items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 1 }],
@@ -125,6 +139,23 @@ const seedOrders = () => new Map<string, Order>(
         status: 'packed',
         deliveryPasscode: '2468',
         createdAt: minutesAgo(10),
+      },
+      {
+        // Another store's dispatched order, assigned to nobody: must never show up or be deliverable here.
+        orderId: 'dev-order-other-store',
+        storeId: 'UPLKO0002',
+        orderNumber: 'UPLKO0002081026001',
+        mobileNumber: '919876543216',
+        customerName: 'Other Store Customer',
+        items: [{ productId: 'p1', name: 'Masala Chai', price: 20, qty: 1 }],
+        floor: '1st Floor',
+        unitNo: '101',
+        itemsTotal: 20,
+        deliveryFee: 0,
+        orderTotal: 20,
+        status: 'dispatched',
+        deliveryPasscode: '5555',
+        createdAt: minutesAgo(5),
       },
     ] satisfies Order[]
   ).map((order) => [order.orderId, order])
@@ -143,9 +174,9 @@ export const mockStore = {
     return riders.get(employeeId) ?? null;
   },
 
-  listOrdersByStatus(statuses: OrderStatus[]): Order[] {
+  listOrdersByStatus(storeId: string, statuses: OrderStatus[]): Order[] {
     return [...orders.values()]
-      .filter((o) => statuses.includes(o.status))
+      .filter((o) => o.storeId === storeId && statuses.includes(o.status))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   },
 

@@ -8,6 +8,10 @@ A deliberately tiny Next.js app. Riders see the orders that are **out for delive
 
 Setup, stack, and Amplify steps follow `../NEW-SATELLITE-APP-PLAYBOOK.md`; this app is the same shape as `HLBRStoreCoord`.
 
+## Stores
+
+Each rider belongs to exactly one store (`storeId` on their `hlbr_store_del_executives` item, e.g. `UPLKO0001`). Orders are listed by querying the `storeId-createdAt-index` GSI on `hlbr_store_orders` for that store, so a rider never sees another store's orders, and `POST /api/orders/[id]/deliver` returns 404 for them before spending a passcode attempt. Every card shows the order's human-readable `orderNumber`.
+
 ## Who sees which order
 
 A coordinator picks the delivery executive when dispatching an order (in `HLBRStoreCoord`), which sets `assignedTo` on the order. Each executive then sees only their own work (`src/lib/visibility.ts`):
@@ -49,7 +53,7 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
 1. `npm install`
 2. `.env.local` (gitignored) is set up with `DEV_MODE=true`: the app runs fully in-memory, seeded with
    - Executive `HLBR-STORE-DEL-1` and `HLBR-STORE-DEL-2` (a second one, to test assignment), both with password `pass@1234`
-   - Dispatched orders: `4821` (assigned to DEL-1), `1357` (assigned to DEL-2), `7777` (unassigned, like an order from before assignment existed); two delivered orders; and one packed order (which must not appear)
+   - Dispatched orders: `4821` (assigned to DEL-1), `1357` (assigned to DEL-2), `7777` (unassigned, like an order from before assignment existed); two delivered orders; one packed order (which must not appear); and a dispatched order from another store, `UPLKO0002` (which must not appear)
 3. `npm run dev` → http://localhost:3000 (redirects to `/login`)
 
 ## Provisioning a real rider
@@ -61,13 +65,14 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
      "employeeId": "HLBR-STORE-DEL-1",
      "passwordHash": "<hash from step 1>",
      "name": "Rider's name",
+     "storeId": "UPLKO0001",
      "createdAt": "2026-09-25T00:00:00.000Z"
    }
    ```
 
 ## Data model
 
-- `hlbr_store_orders` — shared with the storefront, PK `orderId`. This app reads (paginated, status-filtered `Scan`) and writes only `status` (dispatched → delivered), `deliveredAt`, `deliveredBy`, and `passcodeAttempts`. It reads `assignedTo`, which `HLBRStoreCoord` writes.
+- `hlbr_store_orders` — shared with the storefront, PK `orderId`. This app reads (paginated `Query` on the `storeId-createdAt-index` GSI, filtered by status) and writes only `status` (dispatched → delivered), `deliveredAt`, `deliveredBy`, and `passcodeAttempts`. It reads `assignedTo`, which `HLBRStoreCoord` writes.
 - `hlbr_store_del_executives` — PK `employeeId`, owned by this app. Create it manually (on-demand capacity, deletion protection on).
 
 ## Deploying to AWS Amplify
@@ -75,6 +80,7 @@ Every page and API route calls `getCurrentRider()` (`src/lib/auth/rider.ts`), wh
 Follow the playbook. App-specific bits:
 - Env vars: `SESSION_SECRET` (**freshly generated**, not shared with the other apps), `DYNAMODB_ORDERS_TABLE`, `DYNAMODB_DEL_EXECUTIVES_TABLE`, `DEV_MODE=false`, `NEXT_PUBLIC_DEV_MODE=false`. Never `AWS_REGION`.
 - Its own **SSR compute role** (e.g. `HlbrDelSSRComputeRole`), least privilege:
-  - `hlbr_store_orders`: `dynamodb:Scan`, `dynamodb:GetItem`, `dynamodb:UpdateItem`
+  - `hlbr_store_orders`: `dynamodb:GetItem`, `dynamodb:UpdateItem`
+  - `hlbr_store_orders/index/storeId-createdAt-index`: `dynamodb:Query`
   - `hlbr_store_del_executives`: `dynamodb:GetItem`
 - Custom domain `del.hlbrstore.com` only after verifying on the default `amplifyapp.com` URL.

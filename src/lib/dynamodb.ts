@@ -9,6 +9,8 @@ export const ddb = DynamoDBDocumentClient.from(client, {
   marshallOptions: { removeUndefinedValues: true },
 });
 
+export const ORDERS_STORE_INDEX = 'storeId-createdAt-index';
+
 // Shares the orders table with the HLBRStore storefront app — this app only
 // reads/writes orders and its own rider accounts, never users/products.
 export const TABLES = {
