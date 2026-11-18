@@ -88,15 +88,15 @@ Follow the playbook. App-specific bits:
 ## Walk-in online payments (from SperdyWalkin): new order fields and statuses
 SperdyWalkin now takes payment through Cashfree before an order becomes `placed`. It writes the same `hlbr_store_orders` table, so this app sees the following.
 
-**New optional fields on `Order`** (written only by SperdyWalkin; absent on delivery orders, older orders and DEV_MODE orders):
-- `paymentStatus`: `'pending' | 'paid' | 'failed'`. `'pending'` when the order is created, then `'paid'` or `'failed'`.
-- `paidAt`: ISO timestamp, set only when payment succeeds.
+**Optional payment fields on `Order`** (written by SperdyWalkin and HLBRStoreCoord; absent on delivery orders, older orders and DEV_MODE orders):
+- `paymentStatus`: `'pending' | 'paid'` (`'failed'` exists in the type but is no longer used). New walk-in orders start `'pending'`.
+- `paymentMethod`: `'counter'` (customer chose to pay at the counter, still unpaid) | `'online'` (online payment started, not settled) | once paid: `'cash'`, `'online_upi'`, `'online_card'`, `'online_netbanking'`, `'online_wallet'`, `'online_paylater'`.
+- `paidAt`: ISO timestamp, set when paid.
+- `paymentRecordedBy`: employeeId of the coordinator who recorded a counter payment as paid.
 
-**New `OrderStatus` values:**
-- `payment_pending`: order created, Cashfree payment not completed yet.
-- `payment_failed`: the payment expired or was terminated. Terminal state.
+**`OrderStatus` values `payment_pending` and `payment_failed`** are kept in the shared list but are **no longer created by anything**. Payment is now tracked only by the fields above and never changes `status`.
 
-**Lifecycle:** `payment_pending` (`paymentStatus: pending`) -> `placed` (`paid`, `paidAt` set), or -> `payment_failed` (`failed`). The change happens once, with a conditional update on `status = payment_pending`. The rest of the lifecycle (`placed` onward) is unchanged. A missing `paymentStatus` does NOT mean unpaid: it just means the order never went through online payment.
+**Walk-in flow:** the kiosk places the order as `placed` (`paymentStatus: pending`) -> a coordinator confirms it (`order_confirmed`) -> the customer chooses **Pay here** (Cashfree; webhook / status check sets `paymentStatus: paid` and the real `paymentMethod`) or **Pay at the counter** (`paymentMethod: counter`; the coordinator then records how it was paid and marks it paid in HLBRStoreCoord). Payment is only possible once the order is confirmed, and is marked paid once (conditional update). A missing `paymentStatus` does NOT mean unpaid: it just means the order never had payment tracking.
 
 **What HLBRStoreDel does (implemented):**
 - **Functionally nothing:** this app only lists `dispatched` and `delivered` orders (a status-filtered Query), so unpaid orders never appear.

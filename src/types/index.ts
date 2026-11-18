@@ -5,6 +5,16 @@ export interface OrderItem {
   qty: number;
 }
 
+export type PaymentMethod =
+  | 'counter'
+  | 'online'
+  | 'cash'
+  | 'online_upi'
+  | 'online_card'
+  | 'online_netbanking'
+  | 'online_wallet'
+  | 'online_paylater';
+
 export type OrderStatus =
   | 'payment_pending'
   | 'payment_failed'
@@ -39,7 +49,14 @@ export interface Order {
    * value does NOT mean unpaid.
    */
   paymentStatus?: 'pending' | 'paid' | 'failed';
+  /**
+   * "counter": the customer will pay at the counter (unpaid). "online": paying online, not settled yet. Once paid:
+   * "cash" or "online_upi" / "online_card" / ... Set by SperdyWalkin (online) and HLBRStoreCoord (counter payments).
+   */
+  paymentMethod?: PaymentMethod;
   paidAt?: string;
+  /** employeeId of the coordinator who recorded a counter payment as paid. */
+  paymentRecordedBy?: string;
   /** "walkin" for orders placed on the walk-in panel (SperdyWalkin). Absent on online orders. */
   orderType?: 'walkin';
   /** "pickup" when the customer collects at the store (always the case for walk-in orders). Absent on older orders: those are deliveries. */
