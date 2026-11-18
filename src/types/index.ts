@@ -6,6 +6,8 @@ export interface OrderItem {
 }
 
 export type OrderStatus =
+  | 'payment_pending'
+  | 'payment_failed'
   | 'placed'
   | 'order_confirmed'
   | 'order_failed_to_confirm'
@@ -32,6 +34,12 @@ export interface Order {
   orderTotal: number;
   status: OrderStatus;
   statusComment?: string;
+  /**
+   * Set by SperdyWalkin (online payment). Absent on orders that never went through online payment: a missing
+   * value does NOT mean unpaid.
+   */
+  paymentStatus?: 'pending' | 'paid' | 'failed';
+  paidAt?: string;
   createdAt: string;
 
   // --- Fields this app depends on / writes ---

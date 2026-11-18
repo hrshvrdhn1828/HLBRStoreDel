@@ -98,6 +98,6 @@ SperdyWalkin now takes payment through Cashfree before an order becomes `placed`
 
 **Lifecycle:** `payment_pending` (`paymentStatus: pending`) -> `placed` (`paid`, `paidAt` set), or -> `payment_failed` (`failed`). The change happens once, with a conditional update on `status = payment_pending`. The rest of the lifecycle (`placed` onward) is unchanged. A missing `paymentStatus` does NOT mean unpaid: it just means the order never went through online payment.
 
-**What HLBRStoreDel must do:**
+**What HLBRStoreDel does (implemented):**
 - **Functionally nothing:** this app only lists `dispatched` and `delivered` orders (a status-filtered Query), so unpaid orders never appear.
 - For type safety, add the two statuses to `OrderStatus` in `src/types/index.ts` and to `ORDER_STATUS_LABELS` / `ORDER_STATUS_TONE` / `ORDER_STATUS_VALUES` in `src/lib/orderStatus.ts` ("Awaiting Payment", "Payment Failed"), and optionally `paymentStatus?` / `paidAt?` on `Order`. Keep the guard that only `dispatched` -> `delivered` is allowed; do not widen it.

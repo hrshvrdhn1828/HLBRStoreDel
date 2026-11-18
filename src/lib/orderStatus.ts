@@ -1,6 +1,8 @@
 import type { OrderStatus } from '@/types';
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
+  payment_pending: 'Awaiting Payment',
+  payment_failed: 'Payment Failed',
   placed: 'Order Placed',
   order_confirmed: 'Order Confirmed',
   order_failed_to_confirm: 'Order Failed to Confirm',
@@ -10,6 +12,8 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   failed_delivery: 'Failed Delivery',
 };
 
+// The statuses of real orders. payment_pending / payment_failed (SperdyWalkin, unpaid) never reach this app: it only
+// lists dispatched and delivered orders.
 export const ORDER_STATUS_VALUES: OrderStatus[] = [
   'placed',
   'order_confirmed',
@@ -21,6 +25,8 @@ export const ORDER_STATUS_VALUES: OrderStatus[] = [
 ];
 
 export const ORDER_STATUS_TONE: Record<OrderStatus, 'neutral' | 'positive' | 'negative'> = {
+  payment_pending: 'neutral',
+  payment_failed: 'negative',
   placed: 'neutral',
   order_confirmed: 'positive',
   order_failed_to_confirm: 'negative',
