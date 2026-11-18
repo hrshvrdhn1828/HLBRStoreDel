@@ -84,3 +84,20 @@ Follow the playbook. App-specific bits:
   - `hlbr_store_orders/index/storeId-createdAt-index`: `dynamodb:Query`
   - `hlbr_store_del_executives`: `dynamodb:GetItem`
 - Custom domain `del.hlbrstore.com` only after verifying on the default `amplifyapp.com` URL.
+
+## Walk-in online payments (from SperdyWalkin): new order fields and statuses
+SperdyWalkin now takes payment through Cashfree before an order becomes `placed`. It writes the same `hlbr_store_orders` table, so this app sees the following.
+
+**New optional fields on `Order`** (written only by SperdyWalkin; absent on delivery orders, older orders and DEV_MODE orders):
+- `paymentStatus`: `'pending' | 'paid' | 'failed'`. `'pending'` when the order is created, then `'paid'` or `'failed'`.
+- `paidAt`: ISO timestamp, set only when payment succeeds.
+
+**New `OrderStatus` values:**
+- `payment_pending`: order created, Cashfree payment not completed yet.
+- `payment_failed`: the payment expired or was terminated. Terminal state.
+
+**Lifecycle:** `payment_pending` (`paymentStatus: pending`) -> `placed` (`paid`, `paidAt` set), or -> `payment_failed` (`failed`). The change happens once, with a conditional update on `status = payment_pending`. The rest of the lifecycle (`placed` onward) is unchanged. A missing `paymentStatus` does NOT mean unpaid: it just means the order never went through online payment.
+
+**What HLBRStoreDel must do:**
+- **Functionally nothing:** this app only lists `dispatched` and `delivered` orders (a status-filtered Query), so unpaid orders never appear.
+- For type safety, add the two statuses to `OrderStatus` in `src/types/index.ts` and to `ORDER_STATUS_LABELS` / `ORDER_STATUS_TONE` / `ORDER_STATUS_VALUES` in `src/lib/orderStatus.ts` ("Awaiting Payment", "Payment Failed"), and optionally `paymentStatus?` / `paidAt?` on `Order`. Keep the guard that only `dispatched` -> `delivered` is allowed; do not widen it.
