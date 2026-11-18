@@ -40,6 +40,14 @@ export interface Order {
    */
   paymentStatus?: 'pending' | 'paid' | 'failed';
   paidAt?: string;
+  /** "walkin" for orders placed on the walk-in panel (SperdyWalkin). Absent on online orders. */
+  orderType?: 'walkin';
+  /** "pickup" when the customer collects at the store (always the case for walk-in orders). Absent on older orders: those are deliveries. */
+  fulfillmentType?: 'delivery' | 'pickup';
+  /** The online customer's users-table key. Set by the storefront only: walk-in orders have no user. */
+  userId?: string;
+  /** True once this order's items have been taken out of the store's stock (written by HLBRStoreCoord). */
+  stockDeducted?: boolean;
   createdAt: string;
 
   // --- Fields this app depends on / writes ---
