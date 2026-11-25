@@ -21,6 +21,7 @@ export type OrderStatus =
   | 'placed'
   | 'order_confirmed'
   | 'order_failed_to_confirm'
+  | 'preparing_order'
   | 'packed'
   | 'dispatched'
   | 'delivered'
@@ -45,18 +46,20 @@ export interface Order {
   status: OrderStatus;
   statusComment?: string;
   /**
-   * Set by SperdyWalkin (online payment). Absent on orders that never went through online payment: a missing
-   * value does NOT mean unpaid.
+   * Payment details, grouped in one object. Written by SperdyWalkin (online payment) and HLBRStoreCoord (counter
+   * payments). Absent on orders that never went through payment tracking: a missing object does NOT mean unpaid.
    */
-  paymentStatus?: 'pending' | 'paid' | 'failed';
-  /**
-   * "counter": the customer will pay at the counter (unpaid). "online": paying online, not settled yet. Once paid:
-   * "cash" or "online_upi" / "online_card" / ... Set by SperdyWalkin (online) and HLBRStoreCoord (counter payments).
-   */
-  paymentMethod?: PaymentMethod;
-  paidAt?: string;
-  /** employeeId of the coordinator who recorded a counter payment as paid. */
-  paymentRecordedBy?: string;
+  payments?: {
+    paymentStatus?: 'pending' | 'paid' | 'failed';
+    /**
+     * "counter": the customer will pay at the counter (unpaid). "online": paying online, not settled yet. Once paid:
+     * "cash" or "online_upi" / "online_card" / ...
+     */
+    paymentMethod?: PaymentMethod;
+    paidAt?: string;
+    /** employeeId of the coordinator who recorded a counter payment as paid. */
+    paymentRecordedBy?: string;
+  };
   /** "walkin" for orders placed on the walk-in panel (SperdyWalkin). Absent on online orders. */
   orderType?: 'walkin';
   /** "pickup" when the customer collects at the store (always the case for walk-in orders). Absent on older orders: those are deliveries. */

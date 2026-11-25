@@ -88,11 +88,11 @@ Follow the playbook. App-specific bits:
 ## Walk-in online payments (from SperdyWalkin): new order fields and statuses
 SperdyWalkin now takes payment through Cashfree before an order becomes `placed`. It writes the same `hlbr_store_orders` table, so this app sees the following.
 
-**Optional payment fields on `Order`** (written by SperdyWalkin and HLBRStoreCoord; absent on delivery orders, older orders and DEV_MODE orders):
-- `paymentStatus`: `'pending' | 'paid'` (`'failed'` exists in the type but is no longer used). New walk-in orders start `'pending'`.
-- `paymentMethod`: `'counter'` (customer chose to pay at the counter, still unpaid) | `'online'` (online payment started, not settled) | once paid: `'cash'`, `'online_upi'`, `'online_card'`, `'online_netbanking'`, `'online_wallet'`, `'online_paylater'`.
-- `paidAt`: ISO timestamp, set when paid.
-- `paymentRecordedBy`: employeeId of the coordinator who recorded a counter payment as paid.
+**Optional `payments` object on `Order`** (`{ paymentStatus, paymentMethod, paidAt, paymentRecordedBy }`; it replaces the old flat fields of the same names) (written by SperdyWalkin and HLBRStoreCoord; absent on delivery orders, older orders and DEV_MODE orders):
+- `payments.paymentStatus`: `'pending' | 'paid'` (`'failed'` exists in the type but is no longer used). New walk-in orders start `'pending'`.
+- `payments.paymentMethod`: `'counter'` (customer chose to pay at the counter, still unpaid) | `'online'` (online payment started, not settled) | once paid: `'cash'`, `'online_upi'`, `'online_card'`, `'online_netbanking'`, `'online_wallet'`, `'online_paylater'`.
+- `payments.paidAt`: ISO timestamp, set when paid.
+- `payments.paymentRecordedBy`: employeeId of the coordinator who recorded a counter payment as paid.
 
 **`OrderStatus` values `payment_pending` and `payment_failed`** are kept in the shared list but are **no longer created by anything**. Payment is now tracked only by the fields above and never changes `status`.
 
@@ -101,3 +101,7 @@ SperdyWalkin now takes payment through Cashfree before an order becomes `placed`
 **What HLBRStoreDel does (implemented):**
 - **Functionally nothing:** this app only lists `dispatched` and `delivered` orders (a status-filtered Query), so unpaid orders never appear.
 - For type safety, add the two statuses to `OrderStatus` in `src/types/index.ts` and to `ORDER_STATUS_LABELS` / `ORDER_STATUS_TONE` / `ORDER_STATUS_VALUES` in `src/lib/orderStatus.ts` ("Awaiting Payment", "Payment Failed"), and optionally `paymentStatus?` / `paidAt?` on `Order`. Keep the guard that only `dispatched` -> `delivered` is allowed; do not widen it.
+
+## New status `preparing_order`
+
+`OrderStatus` also has `preparing_order` ("Preparing Order"), between `order_confirmed` and `packed`. Behaviour here is unchanged: only `dispatched` -> `delivered` is allowed.
